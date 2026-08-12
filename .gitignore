@@ -1,3 +1,6 @@
+# Local development journal. Personal working notes, not part of the project.
+log.md
+
 # Model blobs are fetched by scripts/fetch-models.sh, never committed.
 models/*.onnx
 

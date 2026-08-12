@@ -184,6 +184,26 @@ your password when you want the keyring unlocked.
 4. Latency: a match currently takes ~3s, most of it model loading on every
    invocation. A socket-activated daemon holding the models warm would cut it.
 
+## Documentation
+
+Full documentation lives in [`docs/`](docs/index.md):
+
+| | |
+|---|---|
+| [Installation](docs/installation.md) | Requirements, install, enrollment, uninstall |
+| [Usage](docs/usage.md) | Every command, and what its output means |
+| [Architecture](docs/architecture.md) | Strobe capture, liveness, recognition, privilege split |
+| [PAM integration](docs/pam-integration.md) | GDM, lock screen, sudo, polkit — and undoing it |
+| [Hardware](docs/hardware.md) | The strobe finding, discovery, calibrating another camera |
+| [Threat model](docs/threat-model.md) | What is defended, what is not, what is untested |
+
+**All documentation is openly licensed under [CC BY 4.0](LICENSE-DOCS)**,
+conformant with the [Open Definition](https://opendefinition.org/) maintained
+by the [Open Knowledge Foundation](https://okfn.org/) — open licence, open
+formats (Markdown and PNG), free to redistribute and adapt, including
+commercially, with attribution as the only condition. The
+[conformance checklist](docs/index.md#open-licensing) is in the docs index.
+
 ## Contributing
 
 The most useful contribution is **not code** — it is data from hardware I do
@@ -201,6 +221,19 @@ credit for it. This project exists because Howdy's last release was in 2020 and
 its dlib dependency makes it unbuildable on current distros — not because the
 idea was wrong. The liveness work here is the part that is genuinely new.
 
-## License
+## Licence
 
-[MIT](LICENSE) — free to use, modify and distribute, including commercially.
+| | |
+|---|---|
+| **Code** | [MIT](LICENSE) |
+| **Documentation** | [CC BY 4.0](LICENSE-DOCS) |
+
+Both are [Open Definition](https://opendefinition.org/licenses/) conformant:
+free to use, redistribute and adapt, including commercially, with attribution
+as the only condition. Two licences rather than one because MIT is written for
+software and CC BY is written for content — using each where it fits is the
+practice the Open Knowledge Foundation recommends.
+
+The ONNX models are **not** covered by either licence. They are fetched at
+install time from [OpenCV Zoo](https://github.com/opencv/opencv_zoo) and carry
+their own terms, which is why this repository does not vendor them.

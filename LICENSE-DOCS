@@ -1,0 +1,44 @@
+Documentation licence
+=====================
+
+All documentation in this repository -- every Markdown file, the diagrams and
+images under docs/, and the issue templates -- is licensed under the
+
+    Creative Commons Attribution 4.0 International Licence (CC BY 4.0)
+
+    Full text:  https://creativecommons.org/licenses/by/4.0/legalcode
+    Summary:    https://creativecommons.org/licenses/by/4.0/
+
+Copyright (c) 2026 Amir Salmani
+
+You are free to share and adapt this material for any purpose, including
+commercially, provided you give appropriate credit, link to the licence, and
+indicate if changes were made.
+
+CC BY 4.0 is conformant with the Open Definition maintained by the Open
+Knowledge Foundation: https://opendefinition.org/licenses/cc-by/
+
+Attribution
+-----------
+
+    "ir-face-auth documentation" by Amir Salmani, CC BY 4.0
+    https://github.com/amir-salmani/ir-face-auth
+
+Scope
+-----
+
+This licence covers documentation only. The SOURCE CODE in this repository is
+licensed separately under the MIT Licence -- see LICENSE.
+
+Both are conformant with the Open Definition. They are kept separate because
+MIT is written for software and carries software-oriented warranty disclaimers,
+while CC BY is written for content and handles attribution of prose, data and
+images properly. Using each where it fits is the practice the Open Knowledge
+Foundation recommends.
+
+Third-party material
+--------------------
+
+The ONNX models this project uses (YuNet, SFace) are NOT covered by either
+licence. They are obtained at install time from OpenCV Zoo and carry their own
+terms: https://github.com/opencv/opencv_zoo
