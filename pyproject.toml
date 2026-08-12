@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ir-face-auth"
+version = "0.1.0"
+description = "IR face authentication for Linux, using the Windows Hello emitter strobe for liveness detection"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.9"
+authors = [{ name = "Amir Salmani", email = "hi@amirsalmani.com" }]
+keywords = ["face-recognition", "pam", "authentication", "infrared", "windows-hello", "liveness", "biometrics"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Topic :: Security",
+    "Topic :: System :: Systems Administration :: Authentication/Directory",
+]
+
+# OpenCV is intentionally NOT declared as a pip dependency. The distro package
+# (python3-opencv) is built against the system interpreter and ships the YuNet
+# and SFace DNN support this project needs; installing a second copy from PyPI
+# invites two OpenCV builds in one process. Install it with your package
+# manager. numpy comes along with it.
+dependencies = []
+
+[project.optional-dependencies]
+# Only for environments without a distro OpenCV package.
+pypi-opencv = ["opencv-python-headless>=4.5.4", "numpy>=1.21"]
+
+[project.urls]
+Homepage = "https://github.com/amir-salmani/ir-face-auth"
+Issues = "https://github.com/amir-salmani/ir-face-auth/issues"
+Security = "https://github.com/amir-salmani/ir-face-auth/blob/main/SECURITY.md"
+
+[project.scripts]
+irfa = "irfa.cli:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]

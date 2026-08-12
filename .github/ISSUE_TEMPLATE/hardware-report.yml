@@ -1,0 +1,77 @@
+name: Hardware report
+description: Report whether your IR camera works (success OR failure — both are useful)
+title: "[hardware] "
+labels: ["hardware-report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is the most valuable contribution to the project. Every threshold
+        in the codebase was measured on a single camera; whether any of it
+        generalises is genuinely unknown.
+
+        **Failures are as useful as successes.** Please report either.
+
+        Please paste numbers, not photographs.
+
+  - type: input
+    id: laptop
+    attributes:
+      label: Laptop model
+      placeholder: HP Pavilion Plus 14-ew1xxx
+    validations:
+      required: true
+
+  - type: input
+    id: usb-id
+    attributes:
+      label: Camera USB ID and name
+      description: "From `lsusb` — e.g. `04f2:b7fe Chicony Electronics HP 5MP Camera`"
+    validations:
+      required: true
+
+  - type: input
+    id: distro
+    attributes:
+      label: Distro, kernel and Python version
+      placeholder: Ubuntu 26.04, kernel 7.0.0-29, Python 3.14.4
+    validations:
+      required: true
+
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: Outcome
+      options:
+        - Works — doctor passes and a face is detected
+        - Partly — camera found, but no face detected
+        - Fails — IR device not found at all
+        - Fails — camera found but frames are black
+    validations:
+      required: true
+
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Output of `doctor`
+      description: "`PYTHONPATH=src python3 -m irfa.cli doctor`"
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: strobe
+    attributes:
+      label: Strobe pattern (optional but very helpful)
+      description: |
+        Does your emitter alternate like the reference hardware? Run:
+
+        ```
+        PYTHONPATH=src python3 -c "
+        import cv2
+        from irfa.camera import find_ir_device
+        d = find_ir_device(); print(d)
+        cap = cv2.VideoCapture(int(d.path[-1]), cv2.CAP_V4L2)
+        print([round(float(cap.read()[1].mean()),1) for _ in range(30)])"
+        ```
+      render: shell

@@ -1,0 +1,205 @@
+#!/usr/bin/env python3
+"""PAM verification helper, invoked by pam_exec as root.
+
+PRIVILEGE MODEL
+---------------
+Howdy runs its entire pipeline -- camera I/O, OpenCV, model parsing -- as root
+inside the authentication path. Any memory-safety bug reachable through a
+decoder or an ONNX blob is then a root compromise, triggerable by anyone who
+can point a camera at the machine.
+
+This helper splits the work instead:
+
+  child (unprivileged, user 'irfa')   camera I/O, OpenCV, face embedding.
+                                      Handles all untrusted input. Cannot read
+                                      the enrollment store. Cannot grant auth.
+
+  parent (root)                       reads the root-owned enrollment store,
+                                      compares embeddings, decides. Does only
+                                      numpy arithmetic on a fixed-size array
+                                      read from a pipe.
+
+The child cannot force a success: it only supplies a candidate embedding, and
+the parent holds both the reference data and the decision. A compromised child
+is limited to submitting faces, which is what an attacker in front of the
+camera could do anyway.
+
+Residual risk, stated plainly: a compromised child could replay an embedding it
+captured earlier from the legitimate user. Defeating replay needs a trusted
+path to the sensor, which this hardware does not offer. See docs/threat-model.md.
+
+EXIT CODES
+----------
+  0  authenticated          (pam_exec treats this as success)
+  1  not authenticated      (falls through to the next PAM rule, i.e. password)
+  2  unusable / no camera   (also a failure; never blocks the password path)
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import pwd
+import grp
+import signal
+import struct
+import sys
+import syslog
+
+# Installed location, root-owned. Deliberately NOT the developer checkout under
+# /home: root must never execute code from a path the authenticating user can
+# write, or face auth becomes a privilege-escalation primitive.
+RUNTIME_DIR = "/usr/local/lib/irfa"
+STORE_DIR = "/var/lib/irfa"
+SERVICE_USER = "irfa"
+
+# PAM must never hang: a stuck camera would freeze every sudo on the machine.
+HARD_TIMEOUT_S = 8
+
+THRESHOLD = 0.45
+QUORUM = 3
+SAMPLES = 6
+
+
+def log(msg: str) -> None:
+    syslog.syslog(syslog.LOG_AUTH | syslog.LOG_INFO, f"irfa: {msg}")
+
+
+def fail(code: int, msg: str) -> int:
+    log(msg)
+    return code
+
+
+def drop_privileges() -> None:
+    """Irreversibly become the service user before touching the camera."""
+    entry = pwd.getpwnam(SERVICE_USER)
+    video_gid = grp.getgrnam("video").gr_gid
+    os.setgroups([video_gid])
+    os.setgid(entry.pw_gid)
+    os.setuid(entry.pw_uid)
+    if os.getuid() == 0 or os.geteuid() == 0:
+        raise RuntimeError("privilege drop failed; refusing to continue as root")
+
+
+def child_capture(write_fd: int) -> None:
+    """Unprivileged: capture faces, emit embeddings as JSON on the pipe."""
+    drop_privileges()
+    sys.path.insert(0, RUNTIME_DIR)
+
+    from irfa import camera, liveness              # noqa: E402
+    from irfa.face import FaceEngine               # noqa: E402
+
+    engine = FaceEngine()
+    vectors = []
+    with camera.IRCamera(timeout_s=HARD_TIMEOUT_S - 2) as cam:
+        for lit, dark in cam.capture_pairs(SAMPLES):
+            faces = engine.detect(lit)
+            if not faces:
+                continue
+            active = camera.active_ir(lit, dark)
+            if not liveness.assess(active, faces[0].bbox).passed:
+                continue
+            vectors.append(engine.embed(lit, faces[0]).tolist())
+
+    payload = json.dumps({"embeddings": vectors}).encode()
+    os.write(write_fd, struct.pack("!I", len(payload)))
+    os.write(write_fd, payload)
+    os.close(write_fd)
+
+
+def read_payload(read_fd: int) -> dict:
+    header = os.read(read_fd, 4)
+    if len(header) != 4:
+        raise ValueError("child produced no output")
+    (length,) = struct.unpack("!I", header)
+    # Bound the read: the parent is root and must not be driven to exhaust
+    # memory by a misbehaving or compromised child.
+    if length > 1 << 20:
+        raise ValueError("child payload implausibly large")
+    buf = b""
+    while len(buf) < length:
+        chunk = os.read(read_fd, length - len(buf))
+        if not chunk:
+            break
+        buf += chunk
+    return json.loads(buf.decode())
+
+
+def main() -> int:
+    syslog.openlog("irfa-pam")
+    username = os.environ.get("PAM_USER")
+    if not username:
+        return fail(2, "no PAM_USER in environment")
+    if os.geteuid() != 0:
+        return fail(2, "must be invoked as root by pam_exec")
+
+    # Remote sessions have no camera in front of them. Without this guard every
+    # ssh login would stall for the full capture timeout before falling through
+    # to the password prompt.
+    if os.environ.get("PAM_RHOST", "") not in ("", "localhost"):
+        return fail(2, "remote session; face auth not applicable")
+
+    import numpy as np
+
+    store_path = os.path.join(STORE_DIR, f"{username.replace('/', '_')}.npz")
+    if not os.path.exists(store_path):
+        return fail(2, f"no enrollment for {username}")
+
+    signal.alarm(HARD_TIMEOUT_S)  # backstop: never hang the auth stack
+
+    read_fd, write_fd = os.pipe()
+    pid = os.fork()
+    if pid == 0:
+        os.close(read_fd)
+        try:
+            child_capture(write_fd)
+            os._exit(0)
+        except Exception as exc:  # noqa: BLE001 - child must never leak a traceback into PAM
+            try:
+                log(f"capture failed: {exc}")
+            finally:
+                os._exit(1)
+
+    os.close(write_fd)
+    try:
+        payload = read_payload(read_fd)
+    except Exception as exc:  # noqa: BLE001
+        os.waitpid(pid, 0)
+        return fail(2, f"could not read candidate embeddings: {exc}")
+    finally:
+        os.close(read_fd)
+    os.waitpid(pid, 0)
+    signal.alarm(0)
+
+    candidates = payload.get("embeddings") or []
+    if not candidates:
+        return fail(1, f"no live face captured for {username}")
+
+    with np.load(store_path, allow_pickle=False) as data:
+        reference = data["embeddings"]
+
+    passing, scores = 0, []
+    for vec in candidates:
+        v = np.asarray(vec, dtype=np.float32)
+        if v.shape != (reference.shape[1],):
+            continue  # malformed input from the child: ignore, never trust
+        score = float(np.max(reference @ v))
+        scores.append(score)
+        if score >= THRESHOLD:
+            passing += 1
+
+    if passing >= QUORUM:
+        log(f"accepted {username}: {passing}/{len(scores)} frames, best {max(scores):.3f}")
+        return 0
+    best = max(scores) if scores else 0.0
+    return fail(1, f"denied {username}: {passing}/{len(scores)} frames, best {best:.3f}")
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main())
+    except Exception as exc:  # noqa: BLE001
+        # Fail closed and quietly: any unexpected error must fall through to
+        # the password prompt rather than surface a traceback at a login screen.
+        syslog.syslog(syslog.LOG_AUTH | syslog.LOG_ERR, f"irfa: unhandled error: {exc}")
+        raise SystemExit(2)

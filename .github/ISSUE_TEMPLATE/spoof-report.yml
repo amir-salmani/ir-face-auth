@@ -1,0 +1,56 @@
+name: Attack / spoof result
+description: Report an attempt to defeat the liveness check
+title: "[spoof] "
+labels: ["security", "spoof-report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **A successful attack is a headline result, not an embarrassment.**
+        The anti-spoofing claims are reasoned from physics and have never been
+        tested against a real attack. If you broke it, that is exactly the
+        contribution this project needs most.
+
+        If your attack authenticates you as *another user*, please report it
+        privately instead — see [SECURITY.md](../../blob/main/SECURITY.md).
+
+  - type: dropdown
+    id: attack
+    attributes:
+      label: Attack type
+      options:
+        - Phone or tablet screen
+        - Laptop or monitor screen
+        - Printed photograph (plain paper)
+        - Printed photograph (IR-reflective or specialist media)
+        - Mask or 3D object
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: result
+    attributes:
+      label: Result
+      options:
+        - Rejected by liveness (as intended)
+        - "AUTHENTICATED — the attack worked"
+        - Detected as a face but failed the match
+        - No face detected at all
+    validations:
+      required: true
+
+  - type: textarea
+    id: analyze
+    attributes:
+      label: Output of `analyze`
+      description: "`PYTHONPATH=src python3 -m irfa.cli analyze` after collecting live and attack sessions"
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: setup
+    attributes:
+      label: Setup
+      description: Distance, brightness, print medium, lighting — whatever mattered.

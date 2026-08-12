@@ -1,0 +1,10 @@
+# Model blobs are fetched by scripts/fetch-models.sh, never committed.
+models/*.onnx
+
+# Face captures are biometric data. Nothing under here should ever be shared.
+captures/
+*.npz
+
+__pycache__/
+*.py[cod]
+.venv/
