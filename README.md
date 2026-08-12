@@ -17,6 +17,13 @@ detecting a photo held up to the camera.
 > security control. [SECURITY.md](SECURITY.md) ·
 > [threat model](docs/threat-model.md)
 
+![Live authentication: lit IR on the left, ambient-subtracted active IR on the right](docs/demo.png)
+
+*Left: what the recogniser sees. Right: the same instant with the ambient frame
+subtracted, showing the inverse-square falloff a real face produces and a photo
+cannot. The face is pixelated for publication —
+[regenerate it yourself](scripts/make-screenshot.py).*
+
 | | |
 |---|---|
 | **What works** | IR capture, liveness, enrollment, matching, PAM integration for GDM / lock screen / sudo / polkit |
