@@ -12,7 +12,7 @@ project:
   id: ir-face-auth
   owner: amir
   kind: tool
-  lifecycle: dormant
+  lifecycle: frozen
   visibility: private
   hosting: none
   toolchain: python
