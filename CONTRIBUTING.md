@@ -12,7 +12,7 @@ recognition thresholds generalise to other Windows Hello cameras is genuinely
 unknown.
 
 If you have an IR camera, run this and open a
-[hardware report](../../issues/new?template=hardware-report.yml):
+[hardware report](https://github.com/amir-salmani/ir-face-auth/issues/new?template=hardware-report.yml):
 
 ```bash
 git clone https://github.com/amir-salmani/ir-face-auth

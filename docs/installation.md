@@ -55,7 +55,7 @@ OK    detected a face in 4 captures
 ```
 
 If this fails, see [hardware.md](hardware.md) — and please
-[file a report](../../../issues/new?template=hardware-report.yml), because
+[file a report](https://github.com/amir-salmani/ir-face-auth/issues/new?template=hardware-report.yml), because
 failures on hardware I do not own are the most useful data this project can
 receive.
 

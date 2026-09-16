@@ -12,7 +12,7 @@ matters.
 ## Reporting a vulnerability
 
 Report privately to **hi@amirsalmani.com**, or via GitHub's
-[private vulnerability reporting](../../security/advisories/new).
+[private vulnerability reporting](https://github.com/amir-salmani/ir-face-auth/security/advisories/new).
 
 Please do not open a public issue for anything that would let someone
 authenticate as another user. Everything else — crashes, hangs, install bugs —

@@ -210,8 +210,8 @@ The most useful contribution is **not code** — it is data from hardware I do
 not own, and attacks I have not tried. See
 [CONTRIBUTING.md](CONTRIBUTING.md).
 
-- 🖥️ [Report your camera](../../issues/new?template=hardware-report.yml) — successes and failures both help
-- 🎭 [Report a spoofing attempt](../../issues/new?template=spoof-report.yml) — breaking it is a headline result, not a bug report to be embarrassed about
+- 🖥️ [Report your camera](https://github.com/amir-salmani/ir-face-auth/issues/new?template=hardware-report.yml) — successes and failures both help
+- 🎭 [Report a spoofing attempt](https://github.com/amir-salmani/ir-face-auth/issues/new?template=spoof-report.yml) — breaking it is a headline result, not a bug report to be embarrassed about
 - 🔒 [Security policy](SECURITY.md) · [Code of conduct](CODE_OF_CONDUCT.md)
 
 ## Prior art

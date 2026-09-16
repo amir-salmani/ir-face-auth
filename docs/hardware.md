@@ -48,7 +48,7 @@ is the established tool. Read its warnings first — it can corrupt camera
 firmware, and that risk is real even if small.
 
 If you go that route and it works, please
-[report it](../../../issues/new?template=hardware-report.yml), so this
+[report it](https://github.com/amir-salmani/ir-face-auth/issues/new?template=hardware-report.yml), so this
 documentation can distinguish cameras that self-strobe from cameras that need
 configuring.
 
@@ -128,5 +128,5 @@ Successes and failures are equally useful — arguably failures more so.
 PYTHONPATH=src python3 -m irfa.cli doctor
 ```
 
-[File a hardware report](../../../issues/new?template=hardware-report.yml) with
+[File a hardware report](https://github.com/amir-salmani/ir-face-auth/issues/new?template=hardware-report.yml) with
 the output. Please send numbers, not photographs.
